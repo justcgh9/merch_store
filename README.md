@@ -1,5 +1,6 @@
 # Магазин мерча
 
+
 [![Merch App CI](https://github.com/justcgh9/merch_store/actions/workflows/ci.yml/badge.svg)](https://github.com/justcgh9/merch_store/actions/workflows/ci.yml)
 
 ## Структура проекта
@@ -52,6 +53,7 @@
             ├── postgres
             │   └── postgres.go
             └── storage.go
+
 ```
 
 ## Настройка базы данных и миграций

@@ -9,3 +9,4 @@ linters:
     - staticcheck
     - gofmt
     - goimports
+
