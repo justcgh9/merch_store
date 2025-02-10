@@ -22,7 +22,7 @@ jobs:
           git diff --exit-code || (echo "Run 'go mod tidy' and commit changes" && exit 1)
 
       - name: Run GolangCI-Lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6.0.1
         with:
           version: v1.54.2
           args: --timeout=5m
