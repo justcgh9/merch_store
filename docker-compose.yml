@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: merch_store_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: merch_user
+      POSTGRES_PASSWORD: merch_password
+      POSTGRES_DB: merch_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+    driver: local
