@@ -1,5 +1,7 @@
 package user
 
+import "github.com/golang-jwt/jwt/v5"
+
 type userDTOKey string
 
 const UserDTOKey userDTOKey = "userDTO"
@@ -12,4 +14,14 @@ func NewUserDTO(username string) *UserDTO {
 	return &UserDTO{
 		Username: username,
 	}
+}
+
+type User struct {
+	Username string
+	Password string
+}
+
+type UserClaims struct {
+	UserDTO
+	jwt.RegisteredClaims
 }
