@@ -45,12 +45,14 @@ func New(log *slog.Logger, authenticator Authenticator) http.HandlerFunc {
 			render.JSON(w, r, AuthResponseError{
 				Error: "error decoding request body: " + err.Error(),
 			})
+
+			return
 		}
 
 		if err := validator.New().Struct(req); err != nil {
 			validateErr := err.(validator.ValidationErrors)
 
-			log.Error("invalid request", slog.String("err", err.Error()))
+			log.Error("invalid request", slog.String("err", validateErr.Error()))
 
 			render.Status(r, http.StatusBadRequest)
 
@@ -63,7 +65,7 @@ func New(log *slog.Logger, authenticator Authenticator) http.HandlerFunc {
 
 		token, err := authenticator.Authenticate(req.Username, req.Password)
 		if err != nil {
-			
+
 			log.Error("error authenticating user", slog.String("err", err.Error()))
 
 			render.Status(r, http.StatusUnauthorized)
@@ -79,6 +81,5 @@ func New(log *slog.Logger, authenticator Authenticator) http.HandlerFunc {
 		render.JSON(w, r, AuthResponseOK{
 			Token: token,
 		})
-		return
 	}
 }

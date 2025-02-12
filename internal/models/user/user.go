@@ -1,5 +1,9 @@
 package user
 
+type userDTOKey string
+
+const UserDTOKey userDTOKey = "userDTO"
+
 type UserDTO struct {
 	Username string
 }

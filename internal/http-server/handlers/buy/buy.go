@@ -19,26 +19,19 @@ type BuyResponseError struct {
 }
 
 const (
-	itemParam  = "item"
-	userDTOKey = "userDTO"
+	itemParam = "item"
 )
 
 func New(log *slog.Logger, buyer Buyer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.buy.New"
-		
+
 		log = log.With(
 			slog.String("op", op),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		userDTO, ok := r.Context().Value(userDTOKey).(user.UserDTO)
-
-		log = log.With(
-			slog.String("username", userDTO.Username),
-		)
-
-		item := chi.URLParam(r, itemParam)
+		userDTO, ok := r.Context().Value(user.UserDTOKey).(user.UserDTO)
 
 		if !ok {
 			log.Error("could not get user info")
@@ -48,6 +41,12 @@ func New(log *slog.Logger, buyer Buyer) http.HandlerFunc {
 			})
 			return
 		}
+
+		log = log.With(
+			slog.String("username", userDTO.Username),
+		)
+
+		item := chi.URLParam(r, itemParam)
 
 		err := buyer.Buy(userDTO.Username, item)
 		if err != nil {
