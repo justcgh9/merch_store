@@ -1,4 +1,3 @@
-// Package main - Точка входа мигратора
 package main
 
 import (

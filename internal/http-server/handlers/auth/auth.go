@@ -10,12 +10,12 @@ import (
 )
 
 type Authenticator interface {
-	Authenticate(username, password string) (string, error)
+	Authorize(username, password string) (string, error)
 }
 
 type AuthRequest struct {
 	Username string `json:"username" validate:"required,alphanum"`
-	Password string `json:"password" validate:"required,aplhanum"`
+	Password string `json:"password" validate:"required,alphanum"`
 }
 
 type AuthResponseOK struct {
@@ -63,7 +63,7 @@ func New(log *slog.Logger, authenticator Authenticator) http.HandlerFunc {
 			return
 		}
 
-		token, err := authenticator.Authenticate(req.Username, req.Password)
+		token, err := authenticator.Authorize(req.Username, req.Password)
 		if err != nil {
 
 			log.Error("error authenticating user", slog.String("err", err.Error()))
