@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/justcgh9/merch_store/internal/models/user"
 )
@@ -20,13 +21,17 @@ type AuthenticationError struct {
 
 const (
 	authHeader = "Authorization"
-	userDTOKey = "userDTO"
 )
 
 func New(log *slog.Logger, authenticator Authenticator) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			const op = "middleware.auth.New"
+
+			log.With(
+				slog.String("op", op),
+				slog.String("request_id", middleware.GetReqID(r.Context())),
+			)
 
 			authHeader := r.Header.Get(authHeader)
 
@@ -59,7 +64,7 @@ func New(log *slog.Logger, authenticator Authenticator) func(http.HandlerFunc) h
 				return
 			}
 
-			r = r.WithContext(context.WithValue(r.Context(), userDTOKey, userDTO))
+			r = r.WithContext(context.WithValue(r.Context(), user.UserDTOKey, userDTO))
 
 			next.ServeHTTP(w, r)
 		}
