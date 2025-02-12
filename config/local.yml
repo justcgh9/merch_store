@@ -1,5 +1,5 @@
 env: "local"
-storage: "postgres://merch_user:merch_password@localhost:5432/merch_db?sslmode=disable"
+storage: "postgres://merch_user:merch_password@localhost:5433/merch_db?sslmode=disable"
 http_server:
   address: "0.0.0.0:8080"
   timeout: 4s
