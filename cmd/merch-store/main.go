@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justcgh9/merch_store/internal/config"
-	"github.com/justcgh9/merch_store/internal/http-server/handlers/auth"
+	// "github.com/justcgh9/merch_store/internal/http-server/handlers/auth"
 	mySlog "github.com/justcgh9/merch_store/internal/log"
 	"github.com/justcgh9/merch_store/internal/storage/postgres"
 )
@@ -42,7 +42,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/api/auth", auth.New())
+	// router.Post("/api/auth", auth.New(log, 1))
 
 	srv := &http.Server{
 		Addr: cfg.Address,
