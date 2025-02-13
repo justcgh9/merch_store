@@ -8,4 +8,5 @@ var (
 	UserIncorrectPassword    = errors.New("incorrect username or password")
 	UserTokenGenerationError = errors.New("error generating token")
 	UserErrInvalidToken      = errors.New("error invalid token")
+	TransferZeroMoneyError 	 = errors.New("error cannot send less than 0 to another user")
 )

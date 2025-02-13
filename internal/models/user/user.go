@@ -22,6 +22,6 @@ type User struct {
 }
 
 type UserClaims struct {
-	UserDTO
+	Payload UserDTO `json:"payload"`
 	jwt.RegisteredClaims
 }

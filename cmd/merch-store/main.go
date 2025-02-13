@@ -13,9 +13,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justcgh9/merch_store/internal/config"
+	"github.com/justcgh9/merch_store/internal/services/coin"
 	"github.com/justcgh9/merch_store/internal/services/user"
 
 	"github.com/justcgh9/merch_store/internal/http-server/handlers/auth"
+	"github.com/justcgh9/merch_store/internal/http-server/handlers/send"
 	authMiddleware "github.com/justcgh9/merch_store/internal/http-server/middleware/auth"
 	mySlog "github.com/justcgh9/merch_store/internal/log"
 	"github.com/justcgh9/merch_store/internal/storage/postgres"
@@ -55,6 +57,7 @@ func main() {
 	log.Info("connected to postgres")
 
 	userService := user.New(log, jwtSecret, storage)
+	coinService := coin.New(log, storage)
 
 	router := chi.NewRouter()
 
@@ -64,9 +67,9 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	middleware := authMiddleware.New(log, userService)
-	_ = middleware
 
 	router.Post("/api/auth", auth.New(log, userService))
+	router.Post("/api/sendCoin", middleware(send.New(log, coinService)))
 
 	srv := &http.Server{
 		Addr:         cfg.Address,
@@ -101,3 +104,5 @@ func main() {
 
 	log.Info("server stopped")
 }
+
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzk0NTA3MDUsInBheWxvYWQiOnsiVXNlcm5hbWUiOiIifX0.77rtwp9yxDICAiEQxwQ6kh3ezuQFM2TYikcvNfaSEG0eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzk0NTA3MDUsInBheWxvYWQiOnsiVXNlcm5hbWUiOiIifX0.77rtwp9yxDICAiEQxwQ6kh3ezuQFM2TYikcvNfaSEG0

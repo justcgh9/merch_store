@@ -15,8 +15,8 @@ type Sender interface {
 }
 
 type SendRequest struct {
-	To     string `json:"toUser" validate:"required, alphanum"`
-	Amount int    `json:"amount" validate:"required, number"`
+	To     string `json:"toUser" validate:"required,alphanum"`
+	Amount int    `json:"amount" validate:"required,number"`
 }
 
 type SendResponseError struct {
@@ -69,6 +69,18 @@ func New(log *slog.Logger, sender Sender) http.HandlerFunc {
 
 			render.JSON(w, r, SendResponseError{
 				Error: validateErr.Error(),
+			})
+
+			return
+		}
+
+		if userDTO.Username == req.To {
+			log.Error("cannot send money to yourself", slog.String("To", req.To))
+
+			render.Status(r, http.StatusBadRequest)
+
+			render.JSON(w, r, SendResponseError{
+				Error: "cannot send money to yourself",
 			})
 
 			return

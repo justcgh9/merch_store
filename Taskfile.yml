@@ -1,0 +1,34 @@
+version: '3'
+
+vars:
+  DB_URL: "postgres://merch_user:merch_password@localhost:5433/merch_db?sslmode=disable"
+
+tasks:
+  migrate-up:
+    cmds:
+      - go run cmd/migrator/main.go -db "{{.DB_URL}}" -path "./migrations" -action up
+
+  migrate-down:
+    cmds:
+      - go run cmd/migrator/main.go -db "{{.DB_URL}}" -path "./migrations" -action down
+
+  docker-build:
+    cmds:
+      - docker-compose build
+
+  docker-up:
+    cmds:
+      - docker-compose up -d
+
+  docker-down:
+    cmds:
+      - docker-compose down
+
+  docker-inspect:
+    cmds:
+      - docker exec -it merch_store_postgres psql -U merch_user -d merch_db
+  
+  run-app:
+    dotenv: ['.env']
+    cmds:
+      - go run ./cmd/merch-store/ --jwt-secret=$JWT_SECRET
