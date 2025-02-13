@@ -50,7 +50,6 @@ func New(log *slog.Logger, buyer Buyer) http.HandlerFunc {
 
 		err := buyer.Buy(userDTO.Username, item)
 		if err != nil {
-			// TODO distinguish the errors
 			log.Error("could not buy "+item, slog.String("err", err.Error()))
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, BuyResponseError{

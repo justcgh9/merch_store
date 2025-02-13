@@ -14,9 +14,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justcgh9/merch_store/internal/config"
 	"github.com/justcgh9/merch_store/internal/services/coin"
+	"github.com/justcgh9/merch_store/internal/services/merch"
 	"github.com/justcgh9/merch_store/internal/services/user"
 
 	"github.com/justcgh9/merch_store/internal/http-server/handlers/auth"
+	"github.com/justcgh9/merch_store/internal/http-server/handlers/buy"
+	"github.com/justcgh9/merch_store/internal/http-server/handlers/info"
 	"github.com/justcgh9/merch_store/internal/http-server/handlers/send"
 	authMiddleware "github.com/justcgh9/merch_store/internal/http-server/middleware/auth"
 	mySlog "github.com/justcgh9/merch_store/internal/log"
@@ -58,6 +61,7 @@ func main() {
 
 	userService := user.New(log, jwtSecret, storage)
 	coinService := coin.New(log, storage)
+	merchService := merch.New(log, storage)
 
 	router := chi.NewRouter()
 
@@ -70,6 +74,8 @@ func main() {
 
 	router.Post("/api/auth", auth.New(log, userService))
 	router.Post("/api/sendCoin", middleware(send.New(log, coinService)))
+	router.Get("/api/buy/{item}", middleware(buy.New(log, merchService)))
+	router.Get("/api/info", middleware(info.New(log, merchService)))
 
 	srv := &http.Server{
 		Addr:         cfg.Address,
@@ -104,5 +110,3 @@ func main() {
 
 	log.Info("server stopped")
 }
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzk0NTA3MDUsInBheWxvYWQiOnsiVXNlcm5hbWUiOiIifX0.77rtwp9yxDICAiEQxwQ6kh3ezuQFM2TYikcvNfaSEG0eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzk0NTA3MDUsInBheWxvYWQiOnsiVXNlcm5hbWUiOiIifX0.77rtwp9yxDICAiEQxwQ6kh3ezuQFM2TYikcvNfaSEG0

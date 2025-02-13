@@ -11,13 +11,13 @@ type CoinRepo interface {
 }
 
 type CoinService struct {
-	log *slog.Logger
+	log      *slog.Logger
 	coinRepo CoinRepo
 }
 
 func New(log *slog.Logger, coinRepo CoinRepo) *CoinService {
 	return &CoinService{
-		log: log,
+		log:      log,
 		coinRepo: coinRepo,
 	}
 }
