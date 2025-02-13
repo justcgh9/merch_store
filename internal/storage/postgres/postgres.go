@@ -71,14 +71,96 @@ func (s *Storage) GetUser(username string) (user.User, error) {
 func (s *Storage) CreateUser(user user.User) error {
 	const op = "storage.postgres.CreateUser"
 
+
+	tx, err := s.conn.Begin()
+	if err != nil {
+		return fmt.Errorf("%s %v", op, err)
+	}
+	defer tx.Rollback()
+
 	query := `
 	INSERT INTO Users (username, password)
 	VALUES ($1, $2);
 	`
 
-	_, err := s.conn.Exec(query, user.Username, user.Password)
+	_, err = tx.Exec(query, user.Username, user.Password)
 	if err != nil {
 		return fmt.Errorf("%s %v", op, err)
+	}
+
+	query = `
+	INSERT INTO Balance (username)
+	VALUES ($1);
+	`
+
+	_, err = tx.Exec(query, user.Username)
+	if err != nil {
+		return fmt.Errorf("%s %v", op, err)
+	}
+
+	query = `
+	INSERT INTO Inventory (username)
+	VALUES ($1);
+	`
+
+	_, err = tx.Exec(query, user.Username)
+	if err != nil {
+		return fmt.Errorf("%s %v", op, err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("%s: failed to commit transaction: %v", op, err)
+	}
+
+	return nil
+}
+
+func (s *Storage) TransferMoney(to, from string, amount int) error {
+	const op = "storage.postgres.TransferMoney"
+
+	tx, err := s.conn.Begin()
+	if err != nil {
+		return fmt.Errorf("%s: begin transaction: %w", op, err)
+	}
+	defer tx.Rollback()
+	
+	result, err := tx.Exec(`
+        UPDATE balance
+        SET balance = balance - $1
+        WHERE username = $2 AND balance >= $1
+    `, amount, from)
+	if err != nil {
+		return fmt.Errorf("%s: deduct from sender: %w", op, err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("%s: insufficient funds", op)
+	}
+	
+	result, err = tx.Exec(`
+        UPDATE balance
+        SET balance = balance + $1
+        WHERE username = $2
+    `, amount, to)
+	if err != nil {
+		return fmt.Errorf("%s: add to recipient: %w", op, err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("%s: recipient does not exist", op)
+	}
+	
+	_, err = tx.Exec(`
+        INSERT INTO history (from_user, to_user, amount, created_at)
+        VALUES ($1, $2, $3, NOW())
+    `, from, to, amount)
+	if err != nil {
+		return fmt.Errorf("%s: insert into history: %w", op, err)
+	}
+	
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%s: commit transaction: %w", op, err)
 	}
 
 	return nil

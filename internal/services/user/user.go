@@ -53,8 +53,8 @@ func (u *UserService) Authenticate(tokenStr string) (user.UserDTO, error) {
 	}
 
 	if claims, ok := token.Claims.(*user.UserClaims); ok && token.Valid {
-		log.Info("token validated successfully")
-		return claims.UserDTO, nil
+		log.Info("token validated successfully", slog.Any("username", claims.Payload.Username))
+		return claims.Payload, nil
 	}
 
 	log.Error("invalid jwt token")

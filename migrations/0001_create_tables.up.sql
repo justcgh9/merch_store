@@ -7,7 +7,7 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON Users(username);
 
 CREATE TABLE IF NOT EXISTS Balance (
     username VARCHAR(255) PRIMARY KEY REFERENCES Users(username) ON DELETE CASCADE,
-    balance INTEGER NOT NULL CHECK (balance >= 0)
+    balance INTEGER DEFAULT 1000 CHECK (balance >= 0)
 );
 
 CREATE INDEX IF NOT EXISTS idx_balance_username ON Balance(username);

@@ -1,7 +1,11 @@
 package merch
 
-// import "log/slog"
+import "log/slog"
 
-// type MerchService struct {
-// 	log *slog.Logger
-// }
+type MerchRepo interface {
+	
+}
+
+type MerchService struct {
+	log *slog.Logger
+}
