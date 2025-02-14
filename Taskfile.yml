@@ -32,3 +32,7 @@ tasks:
     dotenv: ['.env']
     cmds:
       - go run ./cmd/merch-store/ --jwt-secret=$JWT_SECRET
+    
+  lint:
+    cmds:
+      - golangci-lint run --fix
