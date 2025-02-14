@@ -78,7 +78,7 @@ func (s *Storage) CreateUser(user user.User) error {
 	if err != nil {
 		return fmt.Errorf("%s %v", op, err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	query := `
 	INSERT INTO Users (username, password)
@@ -124,7 +124,7 @@ func (s *Storage) TransferMoney(to, from string, amount int) error {
 	if err != nil {
 		return fmt.Errorf("%s: begin transaction: %w", op, err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	result, err := tx.Exec(`
         UPDATE balance
@@ -175,7 +175,7 @@ func (s *Storage) BuyStuff(username, item string, cost int) error {
 	if err != nil {
 		return fmt.Errorf("%s: begin transaction: %w", op, err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	result, err := tx.Exec(`
         UPDATE balance
