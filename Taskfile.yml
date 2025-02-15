@@ -35,11 +35,18 @@ tasks:
 
   run-test:
     cmds:
-      - go test ./... -coverprofile=coverage.out
+      - go test -coverprofile=coverage.out -coverpkg=./internal/... ./...
 
   view-test-report:
     cmds:
       - go tool cover -func=coverage.out
+
+  coverage:
+    dotenv: ['.env']
+    env: 
+      COVERALLS_TOKEN: $COVERALLS_REPO_TOKEN
+    cmds:
+      - goveralls -coverprofile=coverage.out
     
   lint:
     cmds:

@@ -3,6 +3,8 @@
 
 [![Merch App CI](https://github.com/justcgh9/merch_store/actions/workflows/ci.yml/badge.svg)](https://github.com/justcgh9/merch_store/actions/workflows/ci.yml)
 
+[![Coverage Status](https://coveralls.io/repos/github/justcgh9/merch_store/badge.svg)](https://coveralls.io/github/justcgh9/merch_store)
+
 ## Структура проекта
 
 **Ниже** Вы можете видеть структуру проекта:
