@@ -9,12 +9,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"log/slog"
+
 	"github.com/go-chi/chi/v5"
-	"github.com/justcgh9/merch_store/internal/models/user"
 	"github.com/justcgh9/merch_store/internal/http-server/handlers/send"
 	"github.com/justcgh9/merch_store/internal/http-server/handlers/send/mocks"
+	"github.com/justcgh9/merch_store/internal/models/user"
 	"github.com/stretchr/testify/assert"
-	"log/slog"
 )
 
 func TestSendHandler(t *testing.T) {

@@ -20,7 +20,8 @@ import (
 func TestGetUser_Success(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	rows := pgxmock.NewRows([]string{"username", "password"}).
 		AddRow("testuser", "testpassword")
@@ -31,7 +32,7 @@ func TestGetUser_Success(t *testing.T) {
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	u, err := store.GetUser("testuser")
 	assert.NoError(t, err)
@@ -43,12 +44,13 @@ func TestGetUser_Success(t *testing.T) {
 func TestGetUser_NotFound(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	mockConn.ExpectQuery("SELECT username, password FROM Users WHERE username = \\$1;").
 		WithArgs("nonexistent").
@@ -62,12 +64,13 @@ func TestGetUser_NotFound(t *testing.T) {
 func TestGetUser_QueryError(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	mockConn.ExpectQuery("SELECT username, password FROM Users WHERE username = \\$1;").
 		WithArgs("erroruser").
@@ -82,28 +85,28 @@ func TestGetUser_QueryError(t *testing.T) {
 func TestCreateUser_Success(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
-	
 	mockConn.ExpectBegin()
-	
+
 	mockConn.ExpectExec("INSERT INTO Users").
 		WithArgs("testuser", "hashedpassword").
 		WillReturnResult(pgxmock.NewResult("INSERT", 1))
-	
+
 	mockConn.ExpectExec("INSERT INTO Balance").
 		WithArgs("testuser").
 		WillReturnResult(pgxmock.NewResult("INSERT", 1))
-	
+
 	mockConn.ExpectExec("INSERT INTO Inventory").
 		WithArgs("testuser").
 		WillReturnResult(pgxmock.NewResult("INSERT", 1))
-	
+
 	mockConn.ExpectCommit()
 
 	err = store.CreateUser(user.User{Username: "testuser", Password: "hashedpassword"})
@@ -114,12 +117,13 @@ func TestCreateUser_Success(t *testing.T) {
 func TestCreateUser_InsertUserError(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	mockConn.ExpectBegin()
 	mockConn.ExpectExec("INSERT INTO Users").
@@ -136,12 +140,13 @@ func TestCreateUser_InsertUserError(t *testing.T) {
 func TestTransferMoney_Success(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	mockConn.ExpectBegin()
 	mockConn.ExpectExec("UPDATE balance").
@@ -163,12 +168,13 @@ func TestTransferMoney_Success(t *testing.T) {
 func TestTransferMoney_InsufficientFunds(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	mockConn.ExpectBegin()
 	mockConn.ExpectExec("UPDATE balance").
@@ -185,12 +191,13 @@ func TestTransferMoney_InsufficientFunds(t *testing.T) {
 func TestTransferMoney_RecipientNotExist(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	mockConn.ExpectBegin()
 	mockConn.ExpectExec("UPDATE balance").
@@ -210,18 +217,19 @@ func TestTransferMoney_RecipientNotExist(t *testing.T) {
 func TestBuyStuff_Success(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	mockConn.ExpectBegin()
 	mockConn.ExpectExec("UPDATE balance").
 		WithArgs(80, "user1").
 		WillReturnResult(pgxmock.NewResult("UPDATE", 1))
-	
+
 	mockConn.ExpectExec(`UPDATE inventory SET "t_shirt" = "t_shirt" \+ 1 WHERE username = \$1`).
 		WithArgs("user1").
 		WillReturnResult(pgxmock.NewResult("UPDATE", 1))
@@ -235,12 +243,13 @@ func TestBuyStuff_Success(t *testing.T) {
 func TestGetInventory_Success(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	rows := pgxmock.NewRows([]string{"t_shirt", "cup", "book", "pen", "powerbank", "hoody", "umbrella", "socks", "wallet", "pink_hoody"}).
 		AddRow(2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -250,7 +259,7 @@ func TestGetInventory_Success(t *testing.T) {
 
 	inv, err := store.GetInventory("user1")
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(inv)) 
+	assert.Equal(t, 1, len(inv))
 	assert.Equal(t, "t_shirt", inv[0].Type)
 	assert.Equal(t, 2, inv[0].Quantity)
 	assert.NoError(t, mockConn.ExpectationsWereMet())
@@ -259,12 +268,13 @@ func TestGetInventory_Success(t *testing.T) {
 func TestGetBalance_Success(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	rows := pgxmock.NewRows([]string{"balance"}).AddRow(500)
 	mockConn.ExpectQuery("SELECT balance FROM balance WHERE username = \\$1").
@@ -280,12 +290,13 @@ func TestGetBalance_Success(t *testing.T) {
 func TestGetHistory_Success(t *testing.T) {
 	mockConn, err := pgxmock.NewConn()
 	assert.NoError(t, err)
-	defer mockConn.Close(context.Background())
+
+	defer func() { _ = mockConn.Close(context.Background()) }()
 
 	store := &postgres.Storage{}
 
 	setFieldValue(store, "conn", mockConn)
-	setFieldValue(store, "timeout", 3 * time.Second)
+	setFieldValue(store, "timeout", 3*time.Second)
 
 	rows := pgxmock.NewRows([]string{"from_user", "to_user", "amount"}).
 		AddRow("sender1", "user1", 50).
@@ -299,24 +310,22 @@ func TestGetHistory_Success(t *testing.T) {
 	assert.Equal(t, 1, len(hist.Recieved))
 }
 
-
 func setFieldValue(target any, fieldName string, value any) {
-    rv := reflect.ValueOf(target)
-    for rv.Kind() == reflect.Ptr && !rv.IsNil() {
-        rv = rv.Elem()
-    }
-    if !rv.CanAddr() {
-        panic("target must be addressable")
-    }
-    if rv.Kind() != reflect.Struct {
-        panic(fmt.Sprintf(
-            "unable to set the '%s' field value of the type %T, target must be a struct",
-            fieldName,
-            target,
-        ))
-    }
-    rf := rv.FieldByName(fieldName)
+	rv := reflect.ValueOf(target)
+	for rv.Kind() == reflect.Ptr && !rv.IsNil() {
+		rv = rv.Elem()
+	}
+	if !rv.CanAddr() {
+		panic("target must be addressable")
+	}
+	if rv.Kind() != reflect.Struct {
+		panic(fmt.Sprintf(
+			"unable to set the '%s' field value of the type %T, target must be a struct",
+			fieldName,
+			target,
+		))
+	}
+	rf := rv.FieldByName(fieldName)
 
-    reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
+	reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem().Set(reflect.ValueOf(value))
 }
-

@@ -87,4 +87,4 @@ func TestUserService_Authenticate(t *testing.T) {
 		_, err := service.Authenticate(invalidToken)
 		assert.ErrorIs(t, err, services.UserErrInvalidToken)
 	})
-} 
+}

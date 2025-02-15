@@ -19,28 +19,28 @@ import (
 func TestBuyHandler(t *testing.T) {
 	logger := slog.Default()
 
-	t.Run("successful purchase", func(t *testing.T) {		
+	t.Run("successful purchase", func(t *testing.T) {
 		mockBuyer := mocks.NewBuyer(t)
 		mockBuyer.On("Buy", "testUser", "t_shirt").Return(nil).Once()
-		
+
 		handler := buy.New(logger, mockBuyer)
-		
-		req := httptest.NewRequest(http.MethodPost, "/buy/t_shirt", nil)		
+
+		req := httptest.NewRequest(http.MethodPost, "/buy/t_shirt", nil)
 		chiCtx := chi.NewRouteContext()
 		chiCtx.URLParams.Add("item", "t_shirt")
 		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, chiCtx))
-		
+
 		userDTO := user.UserDTO{Username: "testUser"}
 		req = req.WithContext(context.WithValue(req.Context(), user.UserDTOKey, userDTO))
-		
+
 		w := httptest.NewRecorder()
 		handler(w, req)
-		
+
 		resp := w.Result()
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
-	t.Run("purchase error", func(t *testing.T) {		
+	t.Run("purchase error", func(t *testing.T) {
 		mockBuyer := mocks.NewBuyer(t)
 		mockBuyer.On("Buy", "testUser", "t_shirt").Return(errors.New("purchase failed")).Once()
 
@@ -60,14 +60,14 @@ func TestBuyHandler(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	t.Run("missing user info", func(t *testing.T) {		
+	t.Run("missing user info", func(t *testing.T) {
 		mockBuyer := mocks.NewBuyer(t)
 		handler := buy.New(logger, mockBuyer)
 
 		req := httptest.NewRequest(http.MethodPost, "/buy/t_shirt", nil)
 		chiCtx := chi.NewRouteContext()
 		chiCtx.URLParams.Add("item", "t_shirt")
-		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, chiCtx))		
+		req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, chiCtx))
 
 		w := httptest.NewRecorder()
 		handler(w, req)
