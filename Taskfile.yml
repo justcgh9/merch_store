@@ -32,6 +32,14 @@ tasks:
     dotenv: ['.env']
     cmds:
       - go run ./cmd/merch-store/ --jwt-secret=$JWT_SECRET
+
+  run-test:
+    cmds:
+      - go test ./... -coverprofile=coverage.out
+
+  view-test-report:
+    cmds:
+      - go tool cover -func=coverage.out
     
   lint:
     cmds:

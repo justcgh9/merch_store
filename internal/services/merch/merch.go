@@ -68,6 +68,7 @@ func (m *MerchService) Informate(username string) (inventory.Info, error) {
 	log.Info("attempt to get information")
 
 	inv, err := m.merchRepo.GetInventory(username)
+	log.Info("inventory", slog.Any("inv", inv), slog.Any("err", err))
 	if err != nil {
 		log.Error("error accessing inventory", slog.String("err", err.Error()))
 		return inventory.Info{}, services.GetInventoryError
