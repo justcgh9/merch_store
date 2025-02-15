@@ -8,10 +8,35 @@ services:
       POSTGRES_PASSWORD: merch_password
       POSTGRES_DB: merch_db
     ports:
-      - "5433:5432"
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U merch_user -d merch_db_test" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - merch_network
+
+  app:
+    build: .
+    container_name: merch_store_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      CONFIG_PATH: ${CONFIG_PATH}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - merch_network
 
 volumes:
   postgres_data:
     driver: local
+
+networks:
+  merch_network:
+    driver: bridge

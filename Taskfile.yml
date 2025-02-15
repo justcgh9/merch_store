@@ -1,7 +1,7 @@
 version: '3'
 
 vars:
-  DB_URL: "postgres://merch_user:merch_password@localhost:5433/merch_db?sslmode=disable"
+  DB_URL: "postgres://merch_user:merch_password@localhost:5432/merch_db?sslmode=disable"
 
 tasks:
   migrate-up:
@@ -36,6 +36,11 @@ tasks:
   run-test:
     cmds:
       - go test -coverprofile=coverage.out -coverpkg=./internal/... ./...
+
+  run-e2e-test:
+    cmds:
+      - go test -count=1 ./e2e
+
 
   view-test-report:
     cmds:

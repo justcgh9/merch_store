@@ -79,6 +79,7 @@ func (u *UserService) Authorize(username, password string) (string, error) {
 				log.Error("error creating user", slog.String("err", err.Error()))
 				return "", services.UserRegistrationError
 			}
+			user.Username = username
 		} else {
 			log.Error("error reading user", slog.String("err", err.Error()))
 			return "", services.UserReadingError

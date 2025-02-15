@@ -88,6 +88,7 @@ func main() {
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Error("failed to start server")
+			os.Exit(1)
 		}
 	}()
 
