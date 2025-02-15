@@ -55,7 +55,7 @@ func TestEndToEndFlow(t *testing.T) {
 	// (Negative) Buy an item with insufficient coins
 	errorResp = makeRequest(t, "GET", "/api/buy/pink-hoody", nil, token, http.StatusBadRequest)
 	require.Contains(t, errorResp["errors"], "could not buy pink-hoody")
-	
+
 	// (Negative) Attempt buying non-existing item
 	errorResp = makeRequest(t, "GET", "/api/buy/non_existing_item", nil, token, http.StatusBadRequest)
 	require.Contains(t, errorResp["errors"], "could not buy non_existing_item")
@@ -105,11 +105,11 @@ func makeRequest(t *testing.T, method, path string, payload interface{}, token s
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var result map[string]interface{}
 
-	if (resp.StatusCode != 200) {
+	if resp.StatusCode != 200 {
 		_ = json.NewDecoder(resp.Body).Decode(&result)
 		fmt.Println(result["errors"])
 	}
