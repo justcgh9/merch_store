@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 	"github.com/justcgh9/merch_store/internal/models/inventory"
 	"github.com/justcgh9/merch_store/internal/models/transaction"
 	"github.com/justcgh9/merch_store/internal/models/user"
@@ -15,20 +15,25 @@ import (
 	"github.com/lib/pq"
 )
 
+type PgxIface interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Close(context.Context) (err error)
+}
+
 type Storage struct {
-	conn    *pgx.Conn
+	conn    PgxIface
 	timeout time.Duration
 }
 
 func New(connString string, timeout time.Duration) *Storage {
 	const op = "storage.postgres.New"
 
-	config, err := pgx.ParseURI(connString)
-	if err != nil {
-		log.Fatalf("%s %v", op, err)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
-	conn, err := pgx.Connect(config)
+	conn, err := pgx.Connect(ctx, connString)
 	if err != nil {
 		log.Fatalf("%s %v", op, err)
 	}
@@ -45,11 +50,17 @@ func New(connString string, timeout time.Duration) *Storage {
 }
 
 func (s *Storage) Close() error {
-	return s.conn.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+
+	return s.conn.Close(ctx)
 }
 
 func (s *Storage) GetUser(username string) (user.User, error) {
 	const op = "storage.postgres.GetUser"
+
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
 
 	var u user.User
 
@@ -59,7 +70,7 @@ func (s *Storage) GetUser(username string) (user.User, error) {
 	WHERE username = $1;
 	`
 
-	err := s.conn.QueryRow(query, username).Scan(&u.Username, &u.Password)
+	err := s.conn.QueryRow(ctx, query, username).Scan(&u.Username, &u.Password)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return user.User{}, storage.ErrUserDoesNotExist
@@ -74,18 +85,21 @@ func (s *Storage) GetUser(username string) (user.User, error) {
 func (s *Storage) CreateUser(user user.User) error {
 	const op = "storage.postgres.CreateUser"
 
-	tx, err := s.conn.Begin()
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+
+	tx, err := s.conn.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("%s %v", op, err)
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	query := `
 	INSERT INTO Users (username, password)
 	VALUES ($1, $2);
 	`
 
-	_, err = tx.Exec(query, user.Username, user.Password)
+	_, err = tx.Exec(ctx, query, user.Username, user.Password)
 	if err != nil {
 		return fmt.Errorf("%s %v", op, err)
 	}
@@ -95,7 +109,7 @@ func (s *Storage) CreateUser(user user.User) error {
 	VALUES ($1);
 	`
 
-	_, err = tx.Exec(query, user.Username)
+	_, err = tx.Exec(ctx, query, user.Username)
 	if err != nil {
 		return fmt.Errorf("%s %v", op, err)
 	}
@@ -105,12 +119,12 @@ func (s *Storage) CreateUser(user user.User) error {
 	VALUES ($1);
 	`
 
-	_, err = tx.Exec(query, user.Username)
+	_, err = tx.Exec(ctx, query, user.Username)
 	if err != nil {
 		return fmt.Errorf("%s %v", op, err)
 	}
 
-	if err = tx.Commit(); err != nil {
+	if err = tx.Commit(ctx); err != nil {
 		return fmt.Errorf("%s: failed to commit transaction: %v", op, err)
 	}
 
@@ -120,13 +134,16 @@ func (s *Storage) CreateUser(user user.User) error {
 func (s *Storage) TransferMoney(to, from string, amount int) error {
 	const op = "storage.postgres.TransferMoney"
 
-	tx, err := s.conn.Begin()
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+
+	tx, err := s.conn.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("%s: begin transaction: %w", op, err)
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
-	result, err := tx.Exec(`
+	result, err := tx.Exec(ctx, `
         UPDATE balance
         SET balance = balance - $1
         WHERE username = $2 AND balance >= $1
@@ -139,7 +156,7 @@ func (s *Storage) TransferMoney(to, from string, amount int) error {
 		return fmt.Errorf("%s: insufficient funds", op)
 	}
 
-	result, err = tx.Exec(`
+	result, err = tx.Exec(ctx, `
         UPDATE balance
         SET balance = balance + $1
         WHERE username = $2
@@ -152,7 +169,7 @@ func (s *Storage) TransferMoney(to, from string, amount int) error {
 		return fmt.Errorf("%s: recipient does not exist", op)
 	}
 
-	_, err = tx.Exec(`
+	_, err = tx.Exec(ctx, `
         INSERT INTO history (from_user, to_user, amount, created_at)
         VALUES ($1, $2, $3, NOW())
     `, from, to, amount)
@@ -160,7 +177,7 @@ func (s *Storage) TransferMoney(to, from string, amount int) error {
 		return fmt.Errorf("%s: insert into history: %w", op, err)
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return fmt.Errorf("%s: commit transaction: %w", op, err)
 	}
@@ -171,13 +188,16 @@ func (s *Storage) TransferMoney(to, from string, amount int) error {
 func (s *Storage) BuyStuff(username, item string, cost int) error {
 	const op = "storage.postgres.BuyStuff"
 
-	tx, err := s.conn.Begin()
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+
+	tx, err := s.conn.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("%s: begin transaction: %w", op, err)
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = tx.Rollback(ctx) }()
 
-	result, err := tx.Exec(`
+	result, err := tx.Exec(ctx, `
         UPDATE balance
         SET balance = balance - $1
         WHERE username = $2 AND balance >= $1
@@ -196,7 +216,7 @@ func (s *Storage) BuyStuff(username, item string, cost int) error {
         WHERE username = $1
     `, pq.QuoteIdentifier(item), pq.QuoteIdentifier(item))
 
-	result, err = tx.Exec(query, username)
+	result, err = tx.Exec(ctx, query, username)
 	if err != nil {
 		return fmt.Errorf("%s: update inventory: %w", op, err)
 	}
@@ -205,7 +225,7 @@ func (s *Storage) BuyStuff(username, item string, cost int) error {
 		return fmt.Errorf("%s: user does not exist in inventory", op)
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	if err != nil {
 		return fmt.Errorf("%s: commit transaction: %w", op, err)
 	}
@@ -216,7 +236,10 @@ func (s *Storage) BuyStuff(username, item string, cost int) error {
 func (s *Storage) GetInventory(username string) (inventory.Inventory, error) {
 	const op = "storage.postgres.GetInventory"
 
-	row := s.conn.QueryRow(`
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+
+	row := s.conn.QueryRow(ctx, `
         SELECT t_shirt, cup, book, pen, powerbank, hoody, umbrella, socks, wallet, pink_hoody
         FROM inventory
         WHERE username = $1
@@ -255,9 +278,12 @@ func (s *Storage) GetInventory(username string) (inventory.Inventory, error) {
 func (s *Storage) GetBalance(username string) (inventory.Balance, error) {
 	const op = "storage.postgres.GetBalance"
 
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+
 	var balance inventory.Balance
 
-	err := s.conn.QueryRow(`SELECT balance FROM balance WHERE username = $1`, username).Scan(&balance)
+	err := s.conn.QueryRow(ctx, `SELECT balance FROM balance WHERE username = $1`, username).Scan(&balance)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return 0, storage.ErrUserDoesNotExist
@@ -271,9 +297,12 @@ func (s *Storage) GetBalance(username string) (inventory.Balance, error) {
 func (s *Storage) GetHistory(username string) (transaction.TransactionHistory, error) {
 	const op = "storage.postgres.GetHistory"
 
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+
 	var history transaction.TransactionHistory
 
-	rows, err := s.conn.Query(`
+	rows, err := s.conn.Query(ctx, `
 		SELECT from_user, to_user, amount
 		FROM history
 		WHERE from_user = $1 OR to_user = $1
