@@ -41,7 +41,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          go test -coverprofile=coverage.out -coverpkg=./internal/... ./...
+          go test -coverprofile=coverage.out -coverpkg=./internal/... ./internal/...
           sed -i '/mocks\|log\|config/d' coverage.out 
 
       - name: Install goveralls
