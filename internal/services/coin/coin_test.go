@@ -2,11 +2,11 @@ package coin_test
 
 import (
 	"errors"
-	"testing"
 	"log/slog"
+	"testing"
 
 	"github.com/justcgh9/merch_store/internal/services"
-	"github.com/justcgh9/merch_store/internal/services/coin"	
+	"github.com/justcgh9/merch_store/internal/services/coin"
 	"github.com/justcgh9/merch_store/internal/services/coin/mocks"
 	"github.com/stretchr/testify/assert"
 )

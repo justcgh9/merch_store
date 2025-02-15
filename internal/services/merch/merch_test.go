@@ -4,13 +4,14 @@ import (
 	"errors"
 	"testing"
 
+	"log/slog"
+
 	"github.com/justcgh9/merch_store/internal/models/inventory"
 	"github.com/justcgh9/merch_store/internal/models/transaction"
 	"github.com/justcgh9/merch_store/internal/services"
 	"github.com/justcgh9/merch_store/internal/services/merch"
 	"github.com/justcgh9/merch_store/internal/services/merch/mocks"
 	"github.com/stretchr/testify/assert"
-	"log/slog"
 )
 
 func TestMerchService_Buy(t *testing.T) {
@@ -33,11 +34,11 @@ func TestMerchService_Buy(t *testing.T) {
 			expectError: nil,
 		},
 		{
-			name:     "non-existing item",
-			username: "user1",
-			item:     "non-existing-item",
+			name:          "non-existing item",
+			username:      "user1",
+			item:          "non-existing-item",
 			mockBehaviour: func(repo *mocks.MerchRepo) {},
-			expectError: services.NonExistingItemError,
+			expectError:   services.NonExistingItemError,
 		},
 		{
 			name:     "unsuccessful purchase",
