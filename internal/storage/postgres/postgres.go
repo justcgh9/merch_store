@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/justcgh9/merch_store/internal/models/inventory"
 	"github.com/justcgh9/merch_store/internal/models/transaction"
 	"github.com/justcgh9/merch_store/internal/models/user"
@@ -19,7 +20,7 @@ type PgxIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
 	QueryRow(context.Context, string, ...interface{}) pgx.Row
-	Close(context.Context) (err error)
+	Close()
 }
 
 type Storage struct {
@@ -33,7 +34,7 @@ func New(connString string, timeout time.Duration) *Storage {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	conn, err := pgx.Connect(ctx, connString)
+	conn, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		log.Fatalf("%s %v", op, err)
 	}
@@ -49,11 +50,8 @@ func New(connString string, timeout time.Duration) *Storage {
 	}
 }
 
-func (s *Storage) Close() error {
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-	defer cancel()
-
-	return s.conn.Close(ctx)
+func (s *Storage) Close() {
+	s.conn.Close()
 }
 
 func (s *Storage) GetUser(username string) (user.User, error) {

@@ -1,7 +1,6 @@
 package postgres_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -18,10 +17,10 @@ import (
 )
 
 func TestGetUser_Success(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	rows := pgxmock.NewRows([]string{"username", "password"}).
 		AddRow("testuser", "testpassword")
@@ -42,10 +41,10 @@ func TestGetUser_Success(t *testing.T) {
 }
 
 func TestGetUser_NotFound(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -62,10 +61,10 @@ func TestGetUser_NotFound(t *testing.T) {
 }
 
 func TestGetUser_QueryError(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -83,10 +82,10 @@ func TestGetUser_QueryError(t *testing.T) {
 }
 
 func TestCreateUser_Success(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -115,10 +114,10 @@ func TestCreateUser_Success(t *testing.T) {
 }
 
 func TestCreateUser_InsertUserError(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -138,10 +137,10 @@ func TestCreateUser_InsertUserError(t *testing.T) {
 }
 
 func TestTransferMoney_Success(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -166,10 +165,10 @@ func TestTransferMoney_Success(t *testing.T) {
 }
 
 func TestTransferMoney_InsufficientFunds(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -189,10 +188,10 @@ func TestTransferMoney_InsufficientFunds(t *testing.T) {
 }
 
 func TestTransferMoney_RecipientNotExist(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -215,10 +214,10 @@ func TestTransferMoney_RecipientNotExist(t *testing.T) {
 }
 
 func TestBuyStuff_Success(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -241,10 +240,10 @@ func TestBuyStuff_Success(t *testing.T) {
 }
 
 func TestGetInventory_Success(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -266,10 +265,10 @@ func TestGetInventory_Success(t *testing.T) {
 }
 
 func TestGetBalance_Success(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 
@@ -288,10 +287,10 @@ func TestGetBalance_Success(t *testing.T) {
 }
 
 func TestGetHistory_Success(t *testing.T) {
-	mockConn, err := pgxmock.NewConn()
+	mockConn, err := pgxmock.NewPool()
 	assert.NoError(t, err)
 
-	defer func() { _ = mockConn.Close(context.Background()) }()
+	defer mockConn.Close()
 
 	store := &postgres.Storage{}
 

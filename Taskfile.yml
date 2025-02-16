@@ -6,11 +6,11 @@ vars:
 tasks:
   migrate-up:
     cmds:
-      - go run cmd/migrator/main.go -db "{{.DB_URL}}" -path "./migrations" -action up
+      - go run cmd/migrator/main.go -db "{{.DB_URL}}" -path "./migrations/0001_create_tables" -action up
 
   migrate-down:
     cmds:
-      - go run cmd/migrator/main.go -db "{{.DB_URL}}" -path "./migrations" -action down
+      - go run cmd/migrator/main.go -db "{{.DB_URL}}" -path "./migrations/0001_create_tables" -action down
 
   docker-build:
     cmds:
@@ -27,7 +27,7 @@ tasks:
   docker-inspect:
     cmds:
       - docker exec -it merch_store_postgres psql -U merch_user -d merch_db
-  
+
   run-app:
     dotenv: ['.env']
     cmds:
@@ -35,7 +35,7 @@ tasks:
 
   run-test:
     cmds:
-      - go test -coverprofile=coverage.out -coverpkg=./internal/... ./...
+      - go test -coverprofile=coverage.out -coverpkg=./internal/... ./internal/...
 
   run-e2e-test:
     cmds:
@@ -48,11 +48,20 @@ tasks:
 
   coverage:
     dotenv: ['.env']
-    env: 
+    env:
       COVERALLS_TOKEN: $COVERALLS_REPO_TOKEN
     cmds:
       - goveralls -coverprofile=coverage.out
-    
+
   lint:
     cmds:
       - golangci-lint run --fix
+
+  test-migrate-up:
+    cmds:
+      - go run cmd/migrator/main.go -db "{{.DB_URL}}" -path "./migrations/0002_initialize_stress_data" -action up
+
+  test-migrate-down:
+    cmds:
+      - go run cmd/migrator/main.go -db "{{.DB_URL}}" -path "./migrations/0002_initialize_stress_data" -action down
+

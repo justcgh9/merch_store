@@ -50,12 +50,7 @@ func main() {
 	log.Info("starting postgresql connection")
 
 	storage := postgres.New(cfg.StoragePath, cfg.Timeout)
-	defer func() {
-		err := storage.Close()
-		if err != nil {
-			log.Error("error closing db connection", slog.String("err", err.Error()))
-		}
-	}()
+	defer storage.Close()
 
 	log.Info("connected to postgres")
 
