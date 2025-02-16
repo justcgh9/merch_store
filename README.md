@@ -107,7 +107,7 @@
 Чтобы применить миграции, выполните команду:
 
 ```sh
-go run cmd/migrator/main.go -db "postgres://merch_user:merch_password@localhost:5432/merch_db?sslmode=disable" -path "./migrations" -action up
+task migrate-up
 ```
 
 #### Откат миграций
@@ -115,7 +115,7 @@ go run cmd/migrator/main.go -db "postgres://merch_user:merch_password@localhost:
 Для отката миграций используйте:
 
 ```sh
-go run cmd/migrator/main.go -db "postgres://merch_user:merch_password@localhost:5432/merch_db?sslmode=disable" -path "./migrations" -action down
+task migrate-down
 ```
 
 ### Запуск PostgreSQL через Docker
